@@ -1,9 +1,9 @@
 // simulate getting products from DataBase
 const products = [
-  { name: "Apples_:", country: "Italy", cost: 3, instock: 10 },
-  { name: "Oranges:", country: "Spain", cost: 4, instock: 3 },
-  { name: "Beans__:", country: "USA", cost: 2, instock: 5 },
-  { name: "Cabbage:", country: "USA", cost: 1, instock: 8 },
+  { name: "Apples", country: "Italy", cost: 3, instock: 10 },
+  { name: "Oranges", country: "Spain", cost: 4, instock: 3 },
+  { name: "Beans", country: "USA", cost: 2, instock: 5 },
+  { name: "Cabbage", country: "USA", cost: 1, instock: 8 },
 ];
 //=========Cart=============
 const Cart = (props) => {
@@ -101,14 +101,30 @@ const Products = (props) => {
   // Fetch Data
   const addToCart = (e) => {
     let name = e.target.name;
-    let item = items.filter((item) => item.name == name);
-    console.log(`add to Cart ${JSON.stringify(item)}`);
-    setCart([...cart, ...item]);
-    //doFetch(query);
+    let indice = items.findIndex((item) => item.name == name);
+    
+    console.log(`add to Cart ${JSON.stringify(items[indice])}`);
+    setCart([...cart, ...[items[indice]]]);
+
+    items[indice].instock --;
+
+    setItems(items);
+    
   };
   const deleteCartItem = (index) => {
+    
+    var deletedItem = cart[index];
+    
+    var indexItem = items.findIndex(i => i.name == deletedItem.name);
+
+    items[indexItem].instock++;
+
+    setItems(items);
+
     let newCart = cart.filter((item, i) => index != i);
-    setCart(newCart);
+
+    setCart(newCart);    
+    
   };
   const photos = ["apple.png", "orange.png", "beans.png", "cabbage.png"];
 
@@ -119,10 +135,11 @@ const Products = (props) => {
     return (
       <li key={index}>
         <Image src={url} width={70} roundedCircle></Image>
-        <Button variant="primary" size="large">
-          {item.name}:{item.cost}
+        
+        <Button variant="primary" size="large" disabled={item.instock == 0}>
+          {item.name} - Cost:{item.cost} | Stock:{item.instock} 
         </Button>
-        <input name={item.name} type="submit" onClick={addToCart}></input>
+        <input name={item.name} type="submit" onClick={addToCart} disabled={item.instock == 0}></input>
       </li>
     );
   });
@@ -178,9 +195,24 @@ const Products = (props) => {
     fetch("http://localhost:1337/products", requestOptions)
       .then(response => {
         
+        var newItems = [...items]
+
         response.json().then(data => {
 
-          setItems([...items, ...data]);
+          data.forEach(p => {
+            debugger;
+            let indice = newItems.findIndex( d => d.name == p.name);
+            
+            if(indice > -1){
+              newItems[indice].instock += p.instock;
+            }else{
+              newItems.push(p);
+            }
+
+          });
+          debugger;
+
+          setItems([...newItems]);
 
         });
       })
